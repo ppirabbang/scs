@@ -7,8 +7,7 @@
 #include <sys/socket.h>
 #endif // __linux
 #ifdef WIN32
-#include <winsock2.h>
-#include "../mingw_net.h"
+#include <ws2tcpip.h>
 #endif // WIN32
 #include <thread>
 

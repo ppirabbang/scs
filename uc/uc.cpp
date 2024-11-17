@@ -8,7 +8,6 @@
 #endif // __linux
 #ifdef WIN32
 #include <ws2tcpip.h>
-#include "../mingw_net.h"
 #endif // WIN32
 #include <iostream>
 #include <thread>
