@@ -104,8 +104,8 @@ int main(int argc, char* argv[]) {
 
 	int res = getaddrinfo(param.ip, param.port, &aiInput, &aiOutput);
 	if (res != 0) {
-#ifdef WIN32
-		fprintf(stderr, "getaddrinfo: %S\n", gai_strerror(res));
+#if defined(WIN32) && defined(UNICODE)
+        fprintf(stderr, "getaddrinfo: %S\n", gai_strerror(res));
 #else
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(res));
 #endif
