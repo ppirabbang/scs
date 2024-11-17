@@ -8,7 +8,7 @@ endif
 
 all: $(TARGET)
 
-$(TARGET): tc.o ../mingw_net.o
+$(TARGET): tc.o
 	$(LINK.cpp) $^ $(LOADLIBES) $(LDLIBS) -o $@
 ifdef ANDROID_NDK_ROOT
 	termux-elf-cleaner --api-level 23 $(TARGET)
@@ -16,4 +16,4 @@ ifdef ANDROID_NDK_ROOT
 endif
 
 clean:
-	rm -f $(TARGET) *.o ../mingw_net.o
+	rm -f $(TARGET) *.o
