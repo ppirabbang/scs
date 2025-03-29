@@ -1,9 +1,9 @@
 TARGET=../bin/ts
 CPPFLAGS+=-Wall -O2
-LDLIBS+=-pthread
 ifdef ANDROID_NDK_ROOT
-LDLIBS+=-static-libstdc++
+LDFLAGS+=-static-libstdc++
 endif
+LDLIBS+=-pthread
 #LDLIBS+=-lws2_32 # for mingw
 
 all: $(TARGET)
