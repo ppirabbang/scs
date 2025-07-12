@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #endif // __linux
 #ifdef WIN32
 #include <ws2tcpip.h>
@@ -23,8 +24,8 @@ void usage() {
 #include "../version.txt"
 	);
 	printf("\n");
-	printf("syntax: tc <ip> <port> [-si <src ip>] [-sp <src port>]\n");
-	printf("sample: tc 127.0.0.1 1234\n");
+	printf("syntax: tc <ip> <port> [-si <src ip>] [-sp <src port>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt[keepalive count]\n");
+	printf("sample: tc 127.0.0.1 1234 -kidle 60\n");
 }
 
 struct Param {
@@ -32,6 +33,11 @@ struct Param {
 	char* port{nullptr};
 	uint32_t srcIp{0};
 	uint16_t srcPort{0};
+	struct KeepAlive {
+		int idle_{0};
+		int interval_{1};
+		int count_{10};
+	} keepAlive_;
 
 	bool parse(int argc, char* argv[]) {
 		for (int i = 1; i < argc;) {
@@ -48,6 +54,24 @@ struct Param {
 
 			if (strcmp(argv[i], "-sp") == 0) {
 				srcPort = atoi(argv[i + 1]);
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kidle") == 0) {
+				keepAlive_.idle_ = atoi(argv[i + 1]);
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kintv") == 0) {
+				keepAlive_.interval_ = atoi(argv[i + 1]);
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kcnt") == 0) {
+				keepAlive_.count_ = atoi(argv[i + 1]);
 				i += 2;
 				continue;
 			}
@@ -131,13 +155,36 @@ int main(int argc, char* argv[]) {
 	//
 	{
 		int optval = 1;
-		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
 		if (res == -1) {
 			myerror("setsockopt");
 			return -1;
 		}
 	}
 #endif // __linux
+
+	if (param.keepAlive_.idle_ != 0) {
+		int optval = 1;
+		if (setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(int)) < 0) {
+			myerror("setsockopt(SO_KEEPALIVE)");
+			return -1;
+		}
+
+		if (setsockopt(sd, IPPROTO_TCP, TCP_KEEPIDLE, &param.keepAlive_.idle_, sizeof(int)) < 0) {
+			myerror("setsockopt(TCP_KEEPIDLE)");
+			return -1;
+		}
+
+		if (setsockopt(sd, IPPROTO_TCP, TCP_KEEPINTVL, &param.keepAlive_.interval_, sizeof(int)) < 0) {
+			myerror("setsockopt(TCP_KEEPINTVL)");
+			return -1;
+		}
+
+		if (setsockopt(sd, IPPROTO_TCP, TCP_KEEPCNT, &param.keepAlive_.count_, sizeof(int)) < 0) {
+			myerror("setsockopt(TCP_KEEPCNT)");
+			return -1;
+		}
+	}
 
 	//
 	// bind

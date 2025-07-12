@@ -5,6 +5,7 @@
 #ifdef __linux__
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <netinet/tcp.h>
 #endif // __linux
 #ifdef WIN32
 #include <ws2tcpip.h>
@@ -22,15 +23,20 @@ void usage() {
 #include "../version.txt"
    );
 	printf("\n");
-	printf("syntax: ts <port> [-e] [-si <src ip>]\n");
+	printf("syntax: ts <port> [-e] [-si <src ip>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt[keepalive count]\n");
 	printf("  -e : echo\n");
-	printf("sample: ts 1234\n");
+	printf("sample: ts 1234 -kidle 60\n");
 }
 
 struct Param {
 	bool echo{false};
 	uint16_t port{0};
 	uint32_t srcIp{0};
+	struct KeepAlive {
+		int idle_{0};
+		int interval_{1};
+		int count_{10};
+	} keepAlive_;
 
 	bool parse(int argc, char* argv[]) {
 		for (int i = 1; i < argc;) {
@@ -47,6 +53,24 @@ struct Param {
 					case 0: fprintf(stderr, "not a valid network address\n"); return false;
 					case -1: myerror("inet_pton"); return false;
 				}
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kidle") == 0) {
+				keepAlive_.idle_ = atoi(argv[i + 1]);
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kintv") == 0) {
+				keepAlive_.interval_ = atoi(argv[i + 1]);
+				i += 2;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-kcnt") == 0) {
+				keepAlive_.count_ = atoi(argv[i + 1]);
 				i += 2;
 				continue;
 			}
@@ -112,7 +136,7 @@ int main(int argc, char* argv[]) {
 	//
 	{
 		int optval = 1;
-		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
 		if (res == -1) {
 			myerror("setsockopt");
 			return -1;
@@ -155,6 +179,30 @@ int main(int argc, char* argv[]) {
 			myerror("accept");
 			break;
 		}
+
+		if (param.keepAlive_.idle_ != 0) {
+			int optval = 1;
+			if (setsockopt(newsd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(int)) < 0) {
+				myerror("setsockopt(SO_KEEPALIVE)");
+				return -1;
+			}
+
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPIDLE, &param.keepAlive_.idle_, sizeof(int)) < 0) {
+				myerror("setsockopt(TCP_KEEPIDLE)");
+				return -1;
+			}
+
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPINTVL, &param.keepAlive_.interval_, sizeof(int)) < 0) {
+				myerror("setsockopt(TCP_KEEPINTVL)");
+				return -1;
+			}
+
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPCNT, &param.keepAlive_.count_, sizeof(int)) < 0) {
+				myerror("setsockopt(TCP_KEEPCNT)");
+				return -1;
+			}
+		}
+
 		std::thread* t = new std::thread(recvThread, newsd);
 		t->detach();
 	}
