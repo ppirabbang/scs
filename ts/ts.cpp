@@ -110,6 +110,14 @@ void recvThread(int sd) {
 	::close(sd);
 }
 
+#ifdef WIN32
+// declared in w2ipdef.h
+#define TCP_KEEPALIVE       	 3
+#define TCP_KEEPCNT              16
+#define TCP_KEEPIDLE             TCP_KEEPALIVE
+#define TCP_KEEPINTVL            17
+#endif // WIN32
+
 int main(int argc, char* argv[]) {
 	if (!param.parse(argc, argv)) {
 		usage();
@@ -182,22 +190,22 @@ int main(int argc, char* argv[]) {
 
 		if (param.keepAlive_.idle_ != 0) {
 			int optval = 1;
-			if (setsockopt(newsd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(int)) < 0) {
+			if (setsockopt(newsd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optval, sizeof(int)) < 0) {
 				myerror("setsockopt(SO_KEEPALIVE)");
 				return -1;
 			}
 
-			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPIDLE, &param.keepAlive_.idle_, sizeof(int)) < 0) {
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPIDLE, (const char*)&param.keepAlive_.idle_, sizeof(int)) < 0) {
 				myerror("setsockopt(TCP_KEEPIDLE)");
 				return -1;
 			}
 
-			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPINTVL, &param.keepAlive_.interval_, sizeof(int)) < 0) {
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPINTVL, (const char*)&param.keepAlive_.interval_, sizeof(int)) < 0) {
 				myerror("setsockopt(TCP_KEEPINTVL)");
 				return -1;
 			}
 
-			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPCNT, &param.keepAlive_.count_, sizeof(int)) < 0) {
+			if (setsockopt(newsd, IPPROTO_TCP, TCP_KEEPCNT, (const char*)&param.keepAlive_.count_, sizeof(int)) < 0) {
 				myerror("setsockopt(TCP_KEEPCNT)");
 				return -1;
 			}
