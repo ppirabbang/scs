@@ -23,7 +23,7 @@ void usage() {
 #include "../version.txt"
    );
 	printf("\n");
-	printf("syntax: ts <port> [-e] [-si <src ip>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt[keepalive count]\n");
+	printf("syntax: ts <port> [-e] [-si <src ip>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt <keepalive count>]\n");
 	printf("  -e : echo\n");
 	printf("sample: ts 1234 -kidle 60\n");
 }

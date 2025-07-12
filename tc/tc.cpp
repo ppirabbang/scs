@@ -24,7 +24,7 @@ void usage() {
 #include "../version.txt"
 	);
 	printf("\n");
-	printf("syntax: tc <ip> <port> [-si <src ip>] [-sp <src port>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt[keepalive count]\n");
+	printf("syntax: tc <ip> <port> [-si <src ip>] [-sp <src port>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt <keepalive count>]\n");
 	printf("sample: tc 127.0.0.1 1234 -kidle 60\n");
 }
 
