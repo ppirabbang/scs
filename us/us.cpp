@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 	//
 	{
 		int optval = 1;
-		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+		int res = ::setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
 		if (res == -1) {
 			myerror("setsockopt");
 			return -1;
