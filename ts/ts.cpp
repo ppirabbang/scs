@@ -188,6 +188,9 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 
+		//
+		// keepalive
+		//
 		if (param.keepAlive_.idle_ != 0) {
 			int optval = 1;
 			if (setsockopt(newsd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optval, sizeof(int)) < 0) {
