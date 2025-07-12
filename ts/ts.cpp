@@ -23,7 +23,7 @@ void usage() {
 #include "../version.txt"
    );
 	printf("\n");
-	printf("syntax: ts <port> [-e] [-si <src ip>] [-kidle <keepalive idle> -kintv <keepalive interval> -kcnt <keepalive count>]\n");
+	printf("syntax: ts <port> [-e] [-si <src ip>] [-kaidle <keepalive idle> -kaintv <keepalive interval> -kacnt <keepalive count>]\n");
 	printf("  -e : echo\n");
 	printf("sample: ts 1234 -kidle 60\n");
 }
@@ -57,19 +57,19 @@ struct Param {
 				continue;
 			}
 
-			if (strcmp(argv[i], "-kidle") == 0) {
+			if (strcmp(argv[i], "-kaidle") == 0) {
 				keepAlive_.idle_ = atoi(argv[i + 1]);
 				i += 2;
 				continue;
 			}
 
-			if (strcmp(argv[i], "-kintv") == 0) {
+			if (strcmp(argv[i], "-kaintv") == 0) {
 				keepAlive_.interval_ = atoi(argv[i + 1]);
 				i += 2;
 				continue;
 			}
 
-			if (strcmp(argv[i], "-kcnt") == 0) {
+			if (strcmp(argv[i], "-kacnt") == 0) {
 				keepAlive_.count_ = atoi(argv[i + 1]);
 				i += 2;
 				continue;
