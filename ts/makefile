@@ -13,7 +13,7 @@ $(TARGET): ts.o
 ifdef ANDROID_NDK_ROOT
 	termux-elf-cleaner --api-level 23 $(TARGET)
 	llvm-strip $(TARGET)
-endif	
+endif
 
 clean:
 	rm -f $(TARGET) *.o

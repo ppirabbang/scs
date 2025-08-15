@@ -11,6 +11,7 @@
 #include <ws2tcpip.h>
 #endif // WIN32
 #include <thread>
+#include <vector>
 
 #ifdef WIN32
 void myerror(const char* msg) { fprintf(stderr, "%s %lu\n", msg, GetLastError()); }
@@ -30,6 +31,8 @@ void usage() {
 
 struct Param {
 	bool echo{false};
+	bool broadcast{false};
+	std::vector<int> users;
 	uint16_t port{0};
 	uint32_t srcIp{0};
 	struct KeepAlive {
@@ -42,6 +45,12 @@ struct Param {
 		for (int i = 1; i < argc;) {
 			if (strcmp(argv[i], "-e") == 0) {
 				echo = true;
+				i++;
+				continue;
+			}
+
+			if (strcmp(argv[i], "-b") == 0) {
+				broadcast = true;
 				i++;
 				continue;
 			}
@@ -84,6 +93,7 @@ struct Param {
 void recvThread(int sd) {
 	printf("connected\n");
 	fflush(stdout);
+	param.users.push_back(sd);
 	static const int BUFSIZE = 65536;
 	char buf[BUFSIZE];
 	while (true) {
@@ -93,15 +103,31 @@ void recvThread(int sd) {
 			myerror(" ");
 			break;
 		}
+		ssize_t nread = res;
 		buf[res] = '\0';
 		printf("%s", buf);
 		fflush(stdout);
 		if (param.echo) {
-			res = ::send(sd, buf, res, 0);
+			res = ::send(sd, buf, nread, 0);
 			if (res == 0 || res == -1) {
-				fprintf(stderr, "send return %zd", res);
+				fprintf(stderr, "send return %zd", nread);
 				myerror(" ");
 				break;
+			}
+		}
+
+		if (param.broadcast){
+			std::vector<int>::iterator iter;
+			for(iter = param.users.begin(); iter!=param.users.end(); iter++)
+			{
+				int sdb = *iter;
+				if (sd == sdb) continue;
+				res = ::send(sdb, buf, nread, 0);
+				if (res == 0 || res == -1) {
+					fprintf(stderr, "send return %zd", nread);
+					myerror(" ");
+					break;
+				}
 			}
 		}
 	}
